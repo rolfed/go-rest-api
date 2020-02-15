@@ -6,6 +6,9 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
+	_ "github.com/lib/pq"
+
+	"github.com/rolfed/go-rest-api/src/config"
 )
 
 func main() {
@@ -26,5 +29,9 @@ func main() {
 		// Routes
 	})
 
+	// Connect Database
+	config.ConnectDB()
+
 	http.ListenAndServe(":8001", router)
+
 }
