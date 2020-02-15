@@ -24,7 +24,7 @@ const (
 var pool *sql.DB // Database connection pool
 
 // Create PostGrest database connection
-func ConnectDB() {
+func InitDBConnection() {
 	dns := fmt.Sprintf(
 		"host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
 		host, port, user, password, dbname, sslmode)
