@@ -27,9 +27,9 @@ func Routes() *chi.Mux {
 	// further processing should be stopped
 	router.Use(middleware.Timeout(60 * time.Second))
 
-	router.Route("/v1/api", func(r chi.Router) {
+	router.Route("/v1", func(r chi.Router) {
 		// Routes
-		r.Mount("/user", user.Routes())
+		r.Mount("/api/user", user.Routes())
 	})
 
 	return router
@@ -55,6 +55,6 @@ func main() {
 	// Connect Database
 	config.InitDBConnection()
 
-	fmt.Printf("Starting server on port localhost:%s", port)
+	fmt.Printf("\n ==> Starting server on port localhost:%s <==\n", port)
 	log.Fatal(http.ListenAndServe(":"+port, router))
 }

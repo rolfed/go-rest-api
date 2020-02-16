@@ -21,10 +21,11 @@ const (
 	sslmode  = "disable"
 )
 
-var pool *sql.DB // Database connection pool
+var DB *sql.DB // Database connection pool
 
 // Create PostGrest database connection
 func InitDBConnection() {
+	// TODO move this constants to env file
 	dns := fmt.Sprintf(
 		"host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
 		host, port, user, password, dbname, sslmode)
@@ -32,18 +33,18 @@ func InitDBConnection() {
 	var err error
 	// Opening a driver typically will not attempt to connect
 	// to the database
-	pool, err := sql.Open("postgres", dns)
+	DB, err = sql.Open("postgres", dns)
 	if err != nil {
 		// This will not be connection error, but a DSN
 		// parse error
 		log.Fatal("unable to use data source name", err)
 	}
 
-	defer pool.Close()
+	defer DB.Close()
 
-	pool.SetConnMaxLifetime(0)
-	pool.SetMaxIdleConns(3)
-	pool.SetMaxOpenConns(3)
+	DB.SetConnMaxLifetime(0)
+	DB.SetMaxIdleConns(3)
+	DB.SetMaxOpenConns(3)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -65,9 +66,10 @@ func InitDBConnection() {
 
 	}()
 
-	err = pool.Ping()
+	err = DB.Ping()
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("Succesfully connected to database")
+
+	fmt.Println("\n ==> Succesfully connected to database <== \n")
 }
