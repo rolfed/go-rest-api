@@ -6,12 +6,60 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Sirupsen/logrus"
+	"github.com/callistaenterprise/goblog/common/tracing"
+	"github.com/callistaenterprise/goblog/dataservice/dbclient"
+	"github.com/callistaenterprise/goblog/dataservice/service"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	_ "github.com/lib/pq"
 	"github.com/rolfed/go-rest-api/src/config"
-	"github.com/rolfed/go-rest-api/src/user"
+	"github.com/spf13/viper"
 )
+
+// DataSourceName
+const (
+	host     = "localhost"
+	port     = 5432
+	user     = "dev"
+	password = "password"
+	dbname   = "dev"
+	sslmode  = "disable"
+)
+
+var DB config.IGormClient
+var appName "go-rest-api"
+
+func main() {
+	port := "8001"
+	router := Routes()
+
+	walkFunc := func(
+		method string,
+		route string,
+		handler http.Handler,
+		middlewares ...func(http.Handler) http.Handler) error {
+		log.Printf("%s %s\n", method, route)
+		return nil
+	}
+
+	if err := chi.Walk(router, walkFunc); err != nil {
+		log.Panic("Logging err: %s\n", err.Error())
+	}
+
+	// Connect Database
+	config.DBClient = &dbclient.GormClient{}
+	config.DBClient.SetupDB()
+	initializeTracing()
+
+	handleSigterm(func() {
+		logrus.Infoln("Captured Ctrl+C")
+		service.DBClient.Close()
+	})
+
+	fmt.Printf("\n ==> Starting server on port localhost:%s <==\n", port)
+	log.Fatal(http.ListenAndServe(":"+port, router))
+}
 
 // Routes for service
 func Routes() *chi.Mux {
@@ -35,26 +83,6 @@ func Routes() *chi.Mux {
 	return router
 }
 
-func main() {
-	port := "8001"
-	router := Routes()
-
-	walkFunc := func(
-		method string,
-		route string,
-		handler http.Handler,
-		middlewares ...func(http.Handler) http.Handler) error {
-		log.Printf("%s %s\n", method, route)
-		return nil
-	}
-
-	if err := chi.Walk(router, walkFunc); err != nil {
-		log.Panic("Logging err: %s\n", err.Error())
-	}
-
-	// Connect Database
-	config.InitDBConnection()
-
-	fmt.Printf("\n ==> Starting server on port localhost:%s <==\n", port)
-	log.Fatal(http.ListenAndServe(":"+port, router))
+func initializeTracing() {
+	tracing.InitTracing(viper.GetString("zipkin_server_url"), appName)
 }
