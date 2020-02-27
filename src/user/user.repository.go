@@ -7,16 +7,19 @@ import (
 	"strconv"
 )
 
-type service struct {
+type userRepository struct {
 	db *sql.DB
 }
 
-type Service interface {
-	queryAllUsers()
-	queryUserById(userID string)
+type Container interface {
+	db *sql.DB
+
+	userRepository *userRepository
 }
 
-func (user *service) queryServiceById(userID string) {
+func (c *Container) queryServiceById(userID string) {
+	c.userRepository = &userRepository{db}
+
 	// Convert userID string to int
 	id, err := strconv.Atoi(userID)
 	if err == nil {
@@ -24,8 +27,8 @@ func (user *service) queryServiceById(userID string) {
 	}
 }
 
-func (user *service) queryAllServices() {
-	db := user.db
+func (c *Container) queryAllServices() {
+	db := c.db
 
 	var id, email, password string
 

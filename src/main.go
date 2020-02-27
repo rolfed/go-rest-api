@@ -11,7 +11,7 @@ import (
 	"github.com/go-chi/chi/middleware"
 	_ "github.com/lib/pq"
 
-	userTest "github.com/rolfed/go-rest-api/src/user"
+	u "github.com/rolfed/go-rest-api/src/user"
 )
 
 // DataSourceName
@@ -40,7 +40,7 @@ func Routes() *chi.Mux {
 
 	router.Route("/v1/api", func(r chi.Router) {
 		// Routes
-		r.Mount("/user", userTest.Routes())
+		r.Mount("/user", u.Routes())
 	})
 
 	return router

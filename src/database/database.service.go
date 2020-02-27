@@ -13,4 +13,4 @@ func NewConnection(db *sql.DB) Connection {
 
 type connection struct {
 	db *sql.DB
-}
+} 
