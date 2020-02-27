@@ -21,7 +21,7 @@ func getUser(w http.ResponseWriter, r *http.Request) {
 	userID := chi.URLParam(r, "userID")
 
 	// Query Database for user
-	queryUserById(userID)
+	Service.queryUserById(userID)
 
 	// Handler errr
 	// log.Printf("\nGet User by id %+v\n", user)
@@ -29,7 +29,7 @@ func getUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func getAllUsers(w http.ResponseWriter, r *http.Request) {
-
+	Service.queryAllUsers()
 }
 
 func deleteUser(w http.ResponseWriter, r *http.Request) {

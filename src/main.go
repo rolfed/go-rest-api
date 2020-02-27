@@ -10,6 +10,8 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	_ "github.com/lib/pq"
+
+	userTest "github.com/rolfed/go-rest-api/src/user"
 )
 
 // DataSourceName
@@ -21,6 +23,28 @@ const (
 	dbname   = "dev"
 	sslmode  = "disable"
 )
+
+// Routes for service
+func Routes() *chi.Mux {
+	router := chi.NewRouter()
+
+	router.Use(middleware.RequestID)
+	router.Use(middleware.RealIP)
+	router.Use(middleware.Logger)
+	router.Use(middleware.Recoverer)
+
+	// Set a timeout value on the request context (ctx), that will
+	// signal through ctx.Done() that the request has timed out and
+	// further processing should be stopped
+	router.Use(middleware.Timeout(60 * time.Second))
+
+	router.Route("/v1/api", func(r chi.Router) {
+		// Routes
+		r.Mount("/user", userTest.Routes())
+	})
+
+	return router
+}
 
 func main() {
 	port := "8001"
@@ -43,37 +67,16 @@ func main() {
 	dataSourceName := fmt.Sprintf(
 		"host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
 		host, port, user, password, dbname, sslmode)
-	db, _ := sql.Open("postgres", dataSourceName)
-
-	// Create the service by injecting the connection as a dependency
-	// connection := database.NewConnection(db)
-
-	// Create the service by injecting the store as a dependency
-	// user := &user.User{Connection: connection}
-	// user.QueryUserById(1)
+	db, err := sql.Open("postgres", dataSourceName)
+	if err != nil {
+		// This will not be a connection error, but a DSN parse error
+		// or another initialization error.
+		log.Fatal(err)
+	}
+	db.SetConnMaxLifetime(0)
+	db.SetMaxIdleConns(50)
+	db.SetMaxOpenConns(50)
 
 	fmt.Printf("\n ==> Starting server on port localhost:%s <==\n", port)
 	log.Fatal(http.ListenAndServe(":"+port, router))
-}
-
-// Routes for service
-func Routes() *chi.Mux {
-	router := chi.NewRouter()
-
-	router.Use(middleware.RequestID)
-	router.Use(middleware.RealIP)
-	router.Use(middleware.Logger)
-	router.Use(middleware.Recoverer)
-
-	// Set a timeout value on the request context (ctx), that will
-	// signal through ctx.Done() that the request has timed out and
-	// further processing should be stopped
-	router.Use(middleware.Timeout(60 * time.Second))
-
-	router.Route("/v1", func(r chi.Router) {
-		// Routes
-		// r.Mount("/api/user", user.Routes())
-	})
-
-	return router
 }
