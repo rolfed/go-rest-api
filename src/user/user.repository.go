@@ -3,9 +3,15 @@ package user
 import (
 	"fmt"
 	"strconv"
+
+	"github.com/rolfed/go-rest-api/src/database"
 )
 
-func queryUserById(userID string) {
+type User struct {
+	Connection database.Connection
+}
+
+func QueryUserById(userID string) {
 
 	// Convert userID string to int
 	id, err := strconv.Atoi(userID)

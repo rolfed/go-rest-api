@@ -1,20 +1,15 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
 	"time"
 
-	"github.com/Sirupsen/logrus"
-	"github.com/callistaenterprise/goblog/common/tracing"
-	"github.com/callistaenterprise/goblog/dataservice/dbclient"
-	"github.com/callistaenterprise/goblog/dataservice/service"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	_ "github.com/lib/pq"
-	"github.com/rolfed/go-rest-api/src/config"
-	"github.com/spf13/viper"
 )
 
 // DataSourceName
@@ -26,9 +21,6 @@ const (
 	dbname   = "dev"
 	sslmode  = "disable"
 )
-
-var DB config.IGormClient
-var appName "go-rest-api"
 
 func main() {
 	port := "8001"
@@ -48,14 +40,17 @@ func main() {
 	}
 
 	// Connect Database
-	config.DBClient = &dbclient.GormClient{}
-	config.DBClient.SetupDB()
-	initializeTracing()
+	dataSourceName := fmt.Sprintf(
+		"host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
+		host, port, user, password, dbname, sslmode)
+	db, _ := sql.Open("postgres", dataSourceName)
 
-	handleSigterm(func() {
-		logrus.Infoln("Captured Ctrl+C")
-		service.DBClient.Close()
-	})
+	// Create the service by injecting the connection as a dependency
+	// connection := database.NewConnection(db)
+
+	// Create the service by injecting the store as a dependency
+	// user := &user.User{Connection: connection}
+	// user.QueryUserById(1)
 
 	fmt.Printf("\n ==> Starting server on port localhost:%s <==\n", port)
 	log.Fatal(http.ListenAndServe(":"+port, router))
@@ -77,12 +72,8 @@ func Routes() *chi.Mux {
 
 	router.Route("/v1", func(r chi.Router) {
 		// Routes
-		r.Mount("/api/user", user.Routes())
+		// r.Mount("/api/user", user.Routes())
 	})
 
 	return router
-}
-
-func initializeTracing() {
-	tracing.InitTracing(viper.GetString("zipkin_server_url"), appName)
 }
