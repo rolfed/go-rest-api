@@ -13,15 +13,6 @@ import (
 	"github.com/rolfed/go-rest-api/src/helloworld"
 )
 
-// DataSourceName
-const (
-	host     = "localhost"
-	port     = 5432
-	user     = "dev"
-	password = "password"
-	dbname   = "dev"
-	sslmode  = "disable"
-) 
 
 // Routes for service
 func Routes() *chi.Mux {
@@ -37,23 +28,17 @@ func Routes() *chi.Mux {
 	// further processing should be stopped
 	router.Use(middleware.Timeout(60 * time.Second))
 
-	// Connect Database
-	dataSourceName := fmt.Sprintf(
-		"host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
-		host, port, user, password, dbname, sslmode)
-
-  db, err := database.OpenDB(dataSourceName)
+  db, err := database.OpenDB()
 		if err != nil {
 			log.Fatal(err)
 		} 
-
-	env := &database.Env{DB: db}
+	// env := &database.Env{DB: db}
 	defer db.Close()
 
 	router.Route("/v1/api", func(r chi.Router) {
 		// Routes
 		// r.Mount("/user", u.Routes())
-		r.Mount("/helloworld", helloworld.Resource{}.Routes(env, dataSourceName))
+		r.Mount("/helloworld", helloworld.Resource{}.Routes())
 	})
 
 	return router

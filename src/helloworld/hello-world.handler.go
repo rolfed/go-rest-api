@@ -13,14 +13,10 @@ import (
 
 type Resource struct {
 	env *database.Env
-	dsn string
 }
 
 // Routes for hello world
-func (rs Resource) Routes(env *database.Env, dsn string) *chi.Mux {
-	rs.env = env
-	rs.dsn = dsn
-
+func (rs Resource) Routes() *chi.Mux {
 	router := chi.NewRouter()
 	router.Get("/", rs.getHelloWorld)
 	router.Get("/{helloWorldID}", rs.getHelloWorldById)
@@ -29,7 +25,8 @@ func (rs Resource) Routes(env *database.Env, dsn string) *chi.Mux {
 }
 
 func (rs Resource) getHelloWorld(w http.ResponseWriter, r *http.Request) {
-	helloWorlds, err := readHelloWorld(rs.env.DB)
+	db, err := database.OpenDB()
+	helloWorlds, err := readHelloWorld(db)
 	if err != nil {
 		// Internal Server Error
 		http.Error(w, http.StatusText(500), 500)
@@ -39,10 +36,12 @@ func (rs Resource) getHelloWorld(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(helloWorlds)
+	defer db.Close()
 }
 
 
 func (rs Resource) getHelloWorldById(w http.ResponseWriter, r *http.Request) {
+	db, err := database.OpenDB()
 	helloWorldId := chi.URLParam(r, "helloWorldID") 
 	if helloWorldId == "" {
 		log.Fatal("hello world id is undefined")
@@ -54,11 +53,14 @@ func (rs Resource) getHelloWorldById(w http.ResponseWriter, r *http.Request) {
 		log.Fatal("hello world id error ", err)
 	}
 
-	helloWorld, err := readHelloWorldById(rs.env.DB, id)
+	helloWorld, err := readHelloWorldById(db, id)
 	if err != nil {
 		http.Error(w, http.StatusText(404), 404)
 	} else {
 		json.NewEncoder(w).Encode(helloWorld)
 	}
+
+	defer db.Close()
 }
+
 
