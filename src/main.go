@@ -46,7 +46,6 @@ func Routes() *chi.Mux {
 		if err != nil {
 			log.Fatal(err)
 		} 
-		defer db.Close()
 
 	env := &database.Env{DB: db}
 

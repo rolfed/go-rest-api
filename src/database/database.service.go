@@ -21,9 +21,9 @@ func NewDB(dataSourceName string) (*sql.DB, error) {
 		return nil, err
 	}
 
-	if err = db.Ping(); err != nil {
-		return nil, err
-	}
+	// if err = db.Ping(); err != nil {
+	// 	return nil, err
+	// }
 
 	db.SetConnMaxLifetime(0)
 	db.SetMaxIdleConns(50)
