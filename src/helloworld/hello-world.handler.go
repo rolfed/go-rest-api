@@ -4,8 +4,10 @@ import (
 	"context"
 	"net/http"
 	"fmt"
+	"log"
 	"time"
 	"encoding/json"
+	"strconv"
 
 	"github.com/go-chi/chi"
 
@@ -22,7 +24,7 @@ func (rs Resource) Routes(env *database.Env) *chi.Mux {
 
 	router := chi.NewRouter()
 	router.Get("/", rs.getHelloWorld)
-	router.Get("/{id}", rs.getHelloWorldById)
+	router.Get("/{helloWorldID}", rs.getHelloWorldById)
 
 	return router
 }
@@ -44,31 +46,25 @@ func (rs Resource) getHelloWorld(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// for _, helloWorld := range helloWorlds {
-	// 	fmt.Fprintf(w, "%s %s \n", helloWorld.ID, helloWorld.Description)
-	// }
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(helloWorlds)
 }
 
 
 func (rs Resource) getHelloWorldById(w http.ResponseWriter, r *http.Request) {
-	// Is the database connection alive
-	ctx, cancel := context.WithTimeout(r.Context(), 1*time.Second)
-	defer cancel()
-
-	err := rs.env.DB.PingContext(ctx)
-	if err != nil {
-		http.Error(w, fmt.Sprintf("Database down: %v", err), http.StatusFailedDependency)
+	helloWorldId := chi.URLParam(r, "helloWorldID") 
+	if helloWorldId == "" {
+		log.Fatal("hello world id is undefined")
 	}
 
-	// TODO parse id from url and convert it to int
-	// helloWorld, err := readHelloWorldById(rs.env.DB, id)
-	// if err != nil {
-	// 	return err
-	// }
-	// w.Header().Set("Content-Type", "application/json")
-	// w.WriteHeader(http.StatusOK)
-	// w.Write([]byte(`{"test":}`))
+	// Parse id string to int
+	id, err := strconv.Atoi(helloWorldId)
+	if err != nil {
+		log.Fatal("hello world id error ", err)
+	}
 
+	helloWorld, err := readHelloWorldById(rs.env.DB, id)
+	json.NewEncoder(w).Encode(helloWorld)
 }
 

@@ -1,6 +1,6 @@
 package helloworld
 
 type HelloWorld struct {
-	ID  string 
+	ID  int 
 	Description string
 }

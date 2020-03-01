@@ -32,25 +32,23 @@ func readHelloWorld(db *sql.DB) ([]*HelloWorld, error) {
 }
 
 // TODO add HelloWorld to return type in func
-func readHelloWorldById(db *sql.DB, id int) (error) {
-	// TODO fix code below
-	// if (id == 0) {
-	// 	return fmt.Errorf("Repository ID not correctly set"), nil
-	// }
-
-	// helloWorld := new(HelloWorld)
-	helloWorldId := id;
-
-	sqlStatement := `SELECT id FROM hello_world_table WHERE id=$l`
+func readHelloWorldById(db *sql.DB, helloWorldId int) (HelloWorld, error) {
+	sqlStatement := `SELECT * FROM hello_world_table WHERE id=$1;`
+	res := HelloWorld{}
 	row := db.QueryRow(sqlStatement, helloWorldId)
-	switch err := row.Scan(&id); err {
-	case sql.ErrNoRows:
-		fmt.Println("No rows were returned")
-	case nil:
-		fmt.Println(db.QueryRowContext)
-	default:
-		panic(err)
+
+	var id int
+	var description string
+	switch err := row.Scan(&id, &description); err {
+		case sql.ErrNoRows:
+			fmt.Println("No rows were returned")
+		case nil:
+			res.ID = id
+			res.Description = description
+			// fmt.Println(db.QueryRowContext)
+		default:
+			panic(err)
 	}
 
-	return nil
+	return res, nil
 }
