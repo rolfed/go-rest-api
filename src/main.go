@@ -38,7 +38,7 @@ func Routes() *chi.Mux {
 	router.Route("/v1/api", func(r chi.Router) {
 		// Routes
 		// r.Mount("/user", u.Routes())
-		r.Mount("/helloworld", helloworld.Resource{}.Routes())
+		r.Mount("/helloworld", helloworld.Routes())
 	})
 
 	return router

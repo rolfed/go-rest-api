@@ -11,20 +11,17 @@ import (
 	"github.com/rolfed/go-rest-api/src/database"
 )
 
-type Resource struct {
-	env *database.Env
-}
-
 // Routes for hello world
-func (rs Resource) Routes() *chi.Mux {
+func Routes() *chi.Mux {
 	router := chi.NewRouter()
-	router.Get("/", rs.getHelloWorld)
-	router.Get("/{helloWorldID}", rs.getHelloWorldById)
+	router.Get("/", getHelloWorld)
+	router.Get("/{helloWorldID}", getHelloWorldById)
+	router.Post("/", postHelloWorld)
 
 	return router
 }
 
-func (rs Resource) getHelloWorld(w http.ResponseWriter, r *http.Request) {
+func getHelloWorld(w http.ResponseWriter, r *http.Request) {
 	db, err := database.OpenDB()
 	helloWorlds, err := readHelloWorld(db)
 	if err != nil {
@@ -40,7 +37,7 @@ func (rs Resource) getHelloWorld(w http.ResponseWriter, r *http.Request) {
 }
 
 
-func (rs Resource) getHelloWorldById(w http.ResponseWriter, r *http.Request) {
+func getHelloWorldById(w http.ResponseWriter, r *http.Request) {
 	db, err := database.OpenDB()
 	helloWorldId := chi.URLParam(r, "helloWorldID") 
 	if helloWorldId == "" {
@@ -59,6 +56,16 @@ func (rs Resource) getHelloWorldById(w http.ResponseWriter, r *http.Request) {
 	} else {
 		json.NewEncoder(w).Encode(helloWorld)
 	}
+
+	defer db.Close()
+}
+
+func postHelloWorld(w http.ResponseWriter, r *http.Request) {
+	db, err := database.OpenDB()
+	
+	// Parse Request Body
+
+	// Pass json to repository
 
 	defer db.Close()
 }
