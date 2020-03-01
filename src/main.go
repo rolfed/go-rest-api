@@ -48,6 +48,7 @@ func Routes() *chi.Mux {
 		} 
 
 	env := &database.Env{DB: db}
+	defer db.Close()
 
 	router.Route("/v1/api", func(r chi.Router) {
 		// Routes
