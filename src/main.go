@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
@@ -9,9 +8,9 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
-	_ "github.com/lib/pq"
 
-	u "github.com/rolfed/go-rest-api/src/user"
+	"github.com/rolfed/go-rest-api/src/database"
+	"github.com/rolfed/go-rest-api/src/helloworld"
 )
 
 // DataSourceName
@@ -22,7 +21,7 @@ const (
 	password = "password"
 	dbname   = "dev"
 	sslmode  = "disable"
-)
+) 
 
 // Routes for service
 func Routes() *chi.Mux {
@@ -38,16 +37,30 @@ func Routes() *chi.Mux {
 	// further processing should be stopped
 	router.Use(middleware.Timeout(60 * time.Second))
 
+	// Connect Database
+	dataSourceName := fmt.Sprintf(
+		"host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
+		host, port, user, password, dbname, sslmode)
+
+  db, err := database.NewDB(dataSourceName)
+		if err != nil {
+			log.Fatal(err)
+		} 
+		defer db.Close()
+
+	env := &database.Env{DB: db}
+
 	router.Route("/v1/api", func(r chi.Router) {
 		// Routes
-		r.Mount("/user", u.Routes())
+		// r.Mount("/user", u.Routes())
+		r.Mount("/helloworld", helloworld.Resource{}.Routes(env))
 	})
 
 	return router
 }
 
 func main() {
-	port := "8001"
+	SERVER_PORT := "8001"
 	router := Routes()
 
 	walkFunc := func(
@@ -55,28 +68,15 @@ func main() {
 		route string,
 		handler http.Handler,
 		middlewares ...func(http.Handler) http.Handler) error {
-		log.Printf("%s %s\n", method, route)
-		return nil
-	}
+			log.Printf("%s %s\n", method, route)
+			return nil
+		}
 
-	if err := chi.Walk(router, walkFunc); err != nil {
-		log.Panic("Logging err: %s\n", err.Error())
-	}
+		if err := chi.Walk(router, walkFunc); err != nil {
+			log.Panic("Logging err: %s\n", err.Error())
+		}
 
-	// Connect Database
-	dataSourceName := fmt.Sprintf(
-		"host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
-		host, port, user, password, dbname, sslmode)
-	db, err := sql.Open("postgres", dataSourceName)
-	if err != nil {
-		// This will not be a connection error, but a DSN parse error
-		// or another initialization error.
-		log.Fatal(err)
-	}
-	db.SetConnMaxLifetime(0)
-	db.SetMaxIdleConns(50)
-	db.SetMaxOpenConns(50)
 
-	fmt.Printf("\n ==> Starting server on port localhost:%s <==\n", port)
-	log.Fatal(http.ListenAndServe(":"+port, router))
-}
+			fmt.Printf("\n ==> Starting server on port localhost:%s <==\n", SERVER_PORT)
+			log.Fatal(http.ListenAndServe(":"+SERVER_PORT, router))
+		}
