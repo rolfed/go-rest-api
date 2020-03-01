@@ -2,7 +2,6 @@ package database
 
 import (
 	"database/sql"
-	"log"
 
 	_ "github.com/lib/pq"
 )
@@ -17,13 +16,13 @@ func NewDB(dataSourceName string) (*sql.DB, error) {
 	if err != nil {
 		// This will not be a connection error, but a DSN parse error
 		// or another initialization error.
-		log.Fatal(err)
+		panic(err)
 		return nil, err
 	}
 
-	// if err = db.Ping(); err != nil {
-	// 	return nil, err
-	// }
+	if err = db.Ping(); err != nil {
+		return nil, err
+	}
 
 	db.SetConnMaxLifetime(0)
 	db.SetMaxIdleConns(50)
