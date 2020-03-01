@@ -2,7 +2,6 @@ package helloworld
 
 import (
 	"database/sql"
-	"fmt"
 )
 
 func readHelloWorld(db *sql.DB) ([]*HelloWorld, error) {
@@ -31,7 +30,6 @@ func readHelloWorld(db *sql.DB) ([]*HelloWorld, error) {
 	return helloWorlds, nil
 }
 
-// TODO add HelloWorld to return type in func
 func readHelloWorldById(db *sql.DB, helloWorldId int) (HelloWorld, error) {
 	sqlStatement := `SELECT * FROM hello_world_table WHERE id=$1;`
 	res := HelloWorld{}
@@ -41,14 +39,26 @@ func readHelloWorldById(db *sql.DB, helloWorldId int) (HelloWorld, error) {
 	var description string
 	switch err := row.Scan(&id, &description); err {
 		case sql.ErrNoRows:
-			fmt.Println("No rows were returned")
+			return res, err 
 		case nil:
 			res.ID = id
 			res.Description = description
-			// fmt.Println(db.QueryRowContext)
 		default:
 			panic(err)
 	}
 
 	return res, nil
+}
+
+func createHelloWorld(db *sql.DB, helloWorld HelloWorld) (error) {
+	sqlStatement := `
+		INSERT INTO hello_world_table(id, description) 
+		VALUES(?, ?);`
+	
+		_, err := db.Exec(sqlStatement)
+		if err != nil {
+		  return err	
+		}
+
+	return nil
 }

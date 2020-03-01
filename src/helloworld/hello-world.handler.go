@@ -1,13 +1,10 @@
 package helloworld
 
 import (
-	"context"
 	"net/http"
-	"fmt"
-	"log"
-	"time"
 	"encoding/json"
 	"strconv"
+	"log"
 
 	"github.com/go-chi/chi"
 
@@ -16,11 +13,13 @@ import (
 
 type Resource struct {
 	env *database.Env
+	dsn string
 }
 
 // Routes for hello world
-func (rs Resource) Routes(env *database.Env) *chi.Mux {
+func (rs Resource) Routes(env *database.Env, dsn string) *chi.Mux {
 	rs.env = env
+	rs.dsn = dsn
 
 	router := chi.NewRouter()
 	router.Get("/", rs.getHelloWorld)
@@ -30,15 +29,6 @@ func (rs Resource) Routes(env *database.Env) *chi.Mux {
 }
 
 func (rs Resource) getHelloWorld(w http.ResponseWriter, r *http.Request) {
-	// Is the database connection alive
-	ctx, cancel := context.WithTimeout(r.Context(), 1*time.Second)
-	defer cancel()
-
-	err := rs.env.DB.PingContext(ctx)
-	if err != nil {
-		http.Error(w, fmt.Sprintf("Database down: %v", err), http.StatusFailedDependency)
-	}
-
 	helloWorlds, err := readHelloWorld(rs.env.DB)
 	if err != nil {
 		// Internal Server Error
@@ -65,6 +55,10 @@ func (rs Resource) getHelloWorldById(w http.ResponseWriter, r *http.Request) {
 	}
 
 	helloWorld, err := readHelloWorldById(rs.env.DB, id)
-	json.NewEncoder(w).Encode(helloWorld)
+	if err != nil {
+		http.Error(w, http.StatusText(404), 404)
+	} else {
+		json.NewEncoder(w).Encode(helloWorld)
+	}
 }
 

@@ -42,7 +42,7 @@ func Routes() *chi.Mux {
 		"host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
 		host, port, user, password, dbname, sslmode)
 
-  db, err := database.NewDB(dataSourceName)
+  db, err := database.OpenDB(dataSourceName)
 		if err != nil {
 			log.Fatal(err)
 		} 
@@ -52,7 +52,7 @@ func Routes() *chi.Mux {
 	router.Route("/v1/api", func(r chi.Router) {
 		// Routes
 		// r.Mount("/user", u.Routes())
-		r.Mount("/helloworld", helloworld.Resource{}.Routes(env))
+		r.Mount("/helloworld", helloworld.Resource{}.Routes(env, dataSourceName))
 	})
 
 	return router

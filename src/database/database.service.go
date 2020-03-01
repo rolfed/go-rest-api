@@ -3,15 +3,18 @@ package database
 import (
 	"database/sql"
 
+	log "github.com/sirupsen/logrus"
+
 	_ "github.com/lib/pq"
 )
 
 type Env struct {
 	DB *sql.DB
+	log *log.Logger
 }
 
 
-func NewDB(dataSourceName string) (*sql.DB, error) {
+func OpenDB(dataSourceName string) (*sql.DB, error) {
 	db, err := sql.Open("postgres", dataSourceName)
 	if err != nil {
 		// This will not be a connection error, but a DSN parse error
@@ -25,8 +28,9 @@ func NewDB(dataSourceName string) (*sql.DB, error) {
 	}
 
 	db.SetConnMaxLifetime(0)
-	db.SetMaxIdleConns(50)
-	db.SetMaxOpenConns(50)
+	db.SetMaxIdleConns(48)
+	db.SetMaxOpenConns(48)
 
 	return db, nil
 }
+
