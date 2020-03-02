@@ -62,6 +62,9 @@ func getHelloWorldById(w http.ResponseWriter, r *http.Request) {
 
 func postHelloWorld(w http.ResponseWriter, r *http.Request) {
 	db, err := database.OpenDB()
+	if err != nil {
+		log.Fatal(err)
+	}
 	
 	// Parse Request Body
 
