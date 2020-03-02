@@ -5,24 +5,32 @@ import (
 	"encoding/json"
 	"strconv"
 	"log"
+	"fmt"
 
 	"github.com/go-chi/chi"
 
 	"github.com/rolfed/go-rest-api/src/database"
 )
 
+type Resource struct {}
+
 // Routes for hello world
-func Routes() *chi.Mux {
+func (rs Resource) Routes() *chi.Mux {
 	router := chi.NewRouter()
-	router.Get("/", getHelloWorld)
-	router.Get("/{helloWorldID}", getHelloWorldById)
-	router.Post("/", postHelloWorld)
+	router.Get("/", rs.getHelloWorld)
+	router.Get("/{helloWorldID}", rs.getHelloWorldById)
+	router.Post("/", rs.postHelloWorld)
 
 	return router
 }
 
-func getHelloWorld(w http.ResponseWriter, r *http.Request) {
+func (rs Resource) getHelloWorld(w http.ResponseWriter, r *http.Request) {
 	db, err := database.OpenDB()
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
 	helloWorlds, err := readHelloWorld(db)
 	if err != nil {
 		// Internal Server Error
@@ -33,12 +41,16 @@ func getHelloWorld(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(helloWorlds)
-	defer db.Close()
 }
 
 
-func getHelloWorldById(w http.ResponseWriter, r *http.Request) {
+func (rs Resource) getHelloWorldById(w http.ResponseWriter, r *http.Request) {
 	db, err := database.OpenDB()
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
 	helloWorldId := chi.URLParam(r, "helloWorldID") 
 	if helloWorldId == "" {
 		log.Fatal("hello world id is undefined")
@@ -57,20 +69,32 @@ func getHelloWorldById(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(helloWorld)
 	}
 
-	defer db.Close()
 }
 
-func postHelloWorld(w http.ResponseWriter, r *http.Request) {
+func (rs Resource) postHelloWorld(w http.ResponseWriter, r *http.Request) {
+	// New HelloWorld
+	var helloWorld HelloWorld
+
 	db, err := database.OpenDB()
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
-	
-	// Parse Request Body
-
-	// Pass json to repository
-
 	defer db.Close()
+	
+	// Decode Request Body
+	err = json.NewDecoder(r.Body).Decode(&helloWorld)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	fmt.Fprintf(w, "HW: %+v", helloWorld)
+
+	// Pass data to repository
+	err = createHelloWorld(db, helloWorld)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
 }
 
 

@@ -53,9 +53,9 @@ func readHelloWorldById(db *sql.DB, helloWorldId int) (HelloWorld, error) {
 func createHelloWorld(db *sql.DB, helloWorld HelloWorld) (error) {
 	sqlStatement := `
 		INSERT INTO hello_world_table(id, description) 
-		VALUES(?, ?);`
+		VALUES($1, $2);`
 	
-		_, err := db.Exec(sqlStatement)
+		_, err := db.Exec(sqlStatement, helloWorld.ID, helloWorld.Description)
 		if err != nil {
 		  return err	
 		}
