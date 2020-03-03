@@ -1,11 +1,15 @@
 package env
 
-import "os"
+import (
+	"os"
+	"log"
+	"github.com/joho/godotenv"
+)
 
-func EnvVarialbe(key string) string {
-	// Set env variable using os package
-	os.Setenv(key, "gopher")
-
-	// return the env variable using os package
+func Load(key string) string {
+	err := godotenv.Load(".env")
+	if err != nil {
+		log.Fatalf("Error loading .env file")
+	}
 	return os.Getenv(key)
 }

@@ -9,6 +9,7 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 
+	"github.com/rolfed/go-rest-api/src/env"
 	"github.com/rolfed/go-rest-api/src/database"
 	"github.com/rolfed/go-rest-api/src/helloworld"
 )
@@ -45,7 +46,7 @@ func Routes() *chi.Mux {
 }
 
 func main() {
-	SERVER_PORT := "8001"
+	SERVER_PORT := env.Load("SERVER_PORT")
 	router := Routes()
 
 	walkFunc := func(

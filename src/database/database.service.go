@@ -7,18 +7,11 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	_ "github.com/lib/pq"
+
 	"github.com/rolfed/go-rest-api/src/env"
 )
 
 // DataSourceName
-const (
-	host     = "localhost"
-	port     = 5432
-	user     = "dev"
-	password = "password"
-	dbname   = "dev"
-	sslmode  = "disable"
-) 
 
 type Env struct {
 	DSN string
@@ -28,14 +21,17 @@ type Env struct {
 
 
 func OpenDB() (*sql.DB, error) {
-	// Env variables
-	value := env.EnvVarialbe("name")
-	fmt.Printf("os package: %s = %s \n", "name", value)
+	DB_HOST := env.Load("DB_HOST")
+	DB_PORT := env.Load("DB_PORT")
+	DB_USER := env.Load("DB_USER")
+	DB_PASSWORD := env.Load("DB_PASSWORD")
+	DB_NAME := env.Load("DB_NAME")
+	DB_SSL_MODE := env.Load("DB_SSL_MODE")
 
 	// Connect Database
 	dataSourceName := fmt.Sprintf(
-		"host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
-		host, port, user, password, dbname, sslmode)
+		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
+		DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME, DB_SSL_MODE)
 
 	db, err := sql.Open("postgres", dataSourceName)
 	if err != nil {
