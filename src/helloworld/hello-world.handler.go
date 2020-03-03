@@ -20,6 +20,7 @@ func (rs Resource) Routes() *chi.Mux {
 	router.Get("/", rs.getHelloWorld)
 	router.Get("/{helloWorldID}", rs.getHelloWorldById)
 	router.Post("/", rs.postHelloWorld)
+	router.Put("/{helloWorldID}", rs.putHelloWorld)
 
 	return router
 }
@@ -59,20 +60,20 @@ func (rs Resource) getHelloWorldById(w http.ResponseWriter, r *http.Request) {
 	// Parse id string to int
 	id, err := strconv.Atoi(helloWorldId)
 	if err != nil {
-		log.Fatal("hello world id error ", err)
+		log.Printf("hello world id %s is not valid", err)
 	}
 
 	helloWorld, err := readHelloWorldById(db, id)
 	if err != nil {
 		http.Error(w, http.StatusText(404), 404)
-	} else {
-		json.NewEncoder(w).Encode(helloWorld)
-	}
+		return 
+	} 
+
+  json.NewEncoder(w).Encode(helloWorld)
 
 }
 
 func (rs Resource) postHelloWorld(w http.ResponseWriter, r *http.Request) {
-	// New HelloWorld
 	var helloWorld HelloWorld
 
 	db, err := database.OpenDB()
@@ -82,8 +83,8 @@ func (rs Resource) postHelloWorld(w http.ResponseWriter, r *http.Request) {
 	defer db.Close()
 	
 	// Decode Request Body
-	err = json.NewDecoder(r.Body).Decode(&helloWorld)
-	if err != nil {
+	helloWorldRequest := json.NewDecoder(r.Body).Decode(&helloWorld)
+	if helloWorldRequest != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -97,4 +98,38 @@ func (rs Resource) postHelloWorld(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (rs Resource) putHelloWorld(w http.ResponseWriter, r *http.Request) {
+	var helloWorld HelloWorld
 
+	db, err := database.OpenDB()
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	helloWorldId := chi.URLParam(r, "helloWorldID") 
+	if helloWorldId != "" {
+		log.Printf("Hello world with id: %s ", helloWorldId)
+	}
+
+	// Parse id string to int
+	id, err := strconv.Atoi(helloWorldId)
+	if err != nil {
+		log.Printf("hello world id %s is not valid", err)
+	}
+
+	// Decode Request Body
+	helloWorldRequest := json.NewDecoder(r.Body).Decode(&helloWorld)
+	if helloWorldRequest != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err = updateHelloWorld(db, id, helloWorld) 
+	if err != nil {
+		http.Error(w, http.StatusText(404), 404)
+		return
+	} 
+
+	w.WriteHeader(204)
+}
