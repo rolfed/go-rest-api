@@ -17,12 +17,13 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGREST_DB" <<-
   );
 
   -- USER TABLE
-  INSERT INTO user_table (user_id, email, password) VALUES
-  (1, 'test@gmail.com', 'password');
+  INSERT INTO user_table (email, password) VALUES
+  ('test1@gmail.com', 'password'),
+  ('test2@gmail.com', 'password');
 
   -- HELLO WORLD TABLE
-  INSERT INTO hello_world_table (id, description) VALUES
-  (1, 'Hello World');
+  INSERT INTO hello_world_table (description) VALUES
+  ('Hello World');
 
 EOSQL
 
