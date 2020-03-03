@@ -7,6 +7,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	_ "github.com/lib/pq"
+	"github.com/rolfed/go-rest-api/src/env"
 )
 
 // DataSourceName
@@ -27,6 +28,10 @@ type Env struct {
 
 
 func OpenDB() (*sql.DB, error) {
+	// Env variables
+	value := env.EnvVarialbe("name")
+	fmt.Printf("os package: %s = %s \n", "name", value)
+
 	// Connect Database
 	dataSourceName := fmt.Sprintf(
 		"host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
